@@ -1,0 +1,90 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	trmngr "github.com/avito-tech/go-transaction-manager/sqlx"
+	"github.com/avito-tech/go-transaction-manager/trm/manager"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/sirupsen/logrus"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
+	"wordwiz/config"
+	"wordwiz/internal/domain/service/user"
+	smartgenuc "wordwiz/internal/domain/usecase/music_smart_generator"
+	"wordwiz/internal/infrastructure/client/gemini"
+	postgres "wordwiz/internal/infrastructure/pg"
+	"wordwiz/internal/infrastructure/pg/migrator"
+	userrepo "wordwiz/internal/infrastructure/repository/pg/user_repo"
+	"wordwiz/internal/transport/tgbot"
+)
+
+func main() {
+	cfg := config.MustGet()
+
+	pg, err := postgres.New(cfg)
+	if err != nil {
+		logrus.Panic(err)
+	}
+
+	pgMigrator := migrator.New(pg)
+
+	err = pgMigrator.Migrate()
+	if err != nil {
+		logrus.Panic(err)
+	}
+
+	txManager := manager.Must(trmngr.NewDefaultFactory(pg))
+
+	userRepo := userrepo.New(pg, trmngr.DefaultCtxGetter)
+	userService := user.New(userRepo)
+	aiClient := gemini.New(cfg, http.Client{})
+
+	musicGeneratorUC := smartgenuc.New(
+		cfg,
+		userRepo,
+		txManager,
+		userService,
+		aiClient,
+	)
+
+	bot, err := tgbot.New(cfg)
+	if err != nil {
+		logrus.Panic(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*cfg.ServerCloseTimeoutMS)
+	defer cancel()
+
+	bot.HandleCommand("help", func(ctx context.Context, update tgbotapi.Update) tgbotapi.MessageConfig {
+		return tgbotapi.NewMessage(update.Message.Chat.ID, "/make - generate song lyrics from given words")
+	})
+
+	bot.HandleCommand("make", func(ctx context.Context, update tgbotapi.Update) tgbotapi.MessageConfig {
+
+		verses, err := musicGeneratorUC.Generate(ctx, update.Message.Text, update.Message.From.ID)
+		if err != nil {
+			return tgbotapi.NewMessage(
+				update.Message.Chat.ID,
+				fmt.Sprintf("Error while generating song lyrics: %v", err),
+			)
+		}
+
+		raw := verses.String()
+
+		return tgbotapi.NewMessage(update.Message.Chat.ID, raw)
+	})
+
+	go func() {
+		bot.Run(ctx)
+	}()
+
+	done := make(chan os.Signal, 1)
+
+	signal.Notify(done, os.Interrupt)
+	<-done
+
+	cancel()
+}
