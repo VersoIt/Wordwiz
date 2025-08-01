@@ -6,6 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"testing"
 	"wordwiz/internal/domain/model"
+	user2 "wordwiz/internal/domain/model/user"
 	"wordwiz/internal/domain/service/user"
 )
 
@@ -24,8 +25,8 @@ func TestService_TryCreateUser(t *testing.T) {
 		{
 			name: "User does not exist, created successfully",
 			setupMocks: func(r *MockRepo) {
-				r.EXPECT().GetByID(gomock.Any(), 1).Return(model.User{}, model.ErrUserNotFound)
-				r.EXPECT().Create(gomock.Any()).Return(nil)
+				r.EXPECT().GetByID(gomock.Any(), 1).Return(user2.User{}, model.ErrUserNotFound)
+				r.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 			},
 			userID:   1,
 			wantBool: true,
@@ -34,7 +35,7 @@ func TestService_TryCreateUser(t *testing.T) {
 		{
 			name: "User already exists",
 			setupMocks: func(r *MockRepo) {
-				r.EXPECT().GetByID(gomock.Any(), 2).Return(model.User{ID: 2}, nil)
+				r.EXPECT().GetByID(gomock.Any(), 2).Return(user2.User{ID: 2}, nil)
 			},
 			userID:   2,
 			wantBool: false,
@@ -43,7 +44,7 @@ func TestService_TryCreateUser(t *testing.T) {
 		{
 			name: "Error in GetByID",
 			setupMocks: func(r *MockRepo) {
-				r.EXPECT().GetByID(gomock.Any(), 3).Return(model.User{}, errors.New("db error"))
+				r.EXPECT().GetByID(gomock.Any(), 3).Return(user2.User{}, errors.New("db error"))
 			},
 			userID:   3,
 			wantBool: false,
@@ -52,8 +53,8 @@ func TestService_TryCreateUser(t *testing.T) {
 		{
 			name: "Error on Create",
 			setupMocks: func(r *MockRepo) {
-				r.EXPECT().GetByID(gomock.Any(), 4).Return(model.User{}, model.ErrUserNotFound)
-				r.EXPECT().Create(gomock.Any()).Return(errors.New("insert error"))
+				r.EXPECT().GetByID(gomock.Any(), 4).Return(user2.User{}, model.ErrUserNotFound)
+				r.EXPECT().Create(gomock.Any(), gomock.Any()).Return(errors.New("insert error"))
 			},
 			userID:   4,
 			wantBool: false,
@@ -70,7 +71,7 @@ func TestService_TryCreateUser(t *testing.T) {
 
 			s := user.New(mockRepo)
 
-			got, err := s.TryCreateUser(context.TODO(), model.User{ID: tt.userID})
+			got, err := s.TryCreateUser(context.TODO(), user2.User{ID: tt.userID})
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("unexpected error: %v", err)
 			}

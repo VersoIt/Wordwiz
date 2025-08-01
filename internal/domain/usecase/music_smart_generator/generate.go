@@ -2,40 +2,63 @@ package music_smart_generator
 
 import (
 	"context"
+	_ "embed"
+	"fmt"
 	"wordwiz/internal/domain/model"
+	"wordwiz/internal/domain/model/user"
+	"wordwiz/internal/domain/model/verse"
 )
 
-func (u *UseCase) Generate(ctx context.Context, text string, userID int) (model.Verses, error) {
-	var verses model.Verses
+//go:embed lyrics_gen_prompt
+var lyricsGenPrompt string
+
+func (u *UseCase) GenerateWithStats(
+	ctx context.Context,
+	text string,
+	userID int,
+) (user.User, verse.Verses, error) {
+	var (
+		verses verse.Verses
+		stats  user.User
+	)
+
+	if len(text) == 0 {
+		return user.User{}, verse.Verses{}, model.ErrEmptyArgs
+	}
 
 	err := u.txManager.Do(ctx, func(ctx context.Context) error {
-		err := u.userRepo.LockForUpdate(ctx, userID)
+		_, err := u.userService.TryCreateUser(ctx, *user.New(userID))
 		if err != nil {
 			return err
 		}
 
-		user, err := u.userRepo.GetByID(ctx, userID)
+		err = u.userRepo.LockForUpdate(ctx, userID)
 		if err != nil {
 			return err
 		}
 
-		rawText, err := u.aiClient.Do(ctx, text)
+		stats, err = u.userRepo.GetByID(ctx, userID)
 		if err != nil {
 			return err
 		}
 
-		rawVerses := model.RawVerses(rawText)
+		rawText, err := u.aiClient.Do(ctx, fmt.Sprintf(lyricsGenPrompt, text))
+		if err != nil {
+			return err
+		}
+
+		rawVerses := verse.RawVerses(rawText)
 
 		verses = rawVerses.ToVerses()
 
-		if user.GenerationsPerMonth >= u.cfg.MaxGenerationsPerMonth {
+		if stats.GenerationsPerMonth >= u.cfg.MaxGenerationsPerMonth {
 			return model.ErrGenerationsLimitReached
 		}
 
-		user.GenerationsPerMonth++
-		user.TotalRequests++
+		stats.GenerationsPerMonth++
+		stats.TotalRequests++
 
-		err = u.userRepo.Update(ctx, user)
+		err = u.userRepo.Update(ctx, stats)
 		if err != nil {
 			return err
 		}
@@ -43,8 +66,8 @@ func (u *UseCase) Generate(ctx context.Context, text string, userID int) (model.
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return user.User{}, nil, err
 	}
 
-	return verses, nil
+	return stats, verses, nil
 }

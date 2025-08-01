@@ -32,7 +32,7 @@ func (b *Bot) Run(ctx context.Context) {
 
 			f, ok := b.commands[u.Message.Command()]
 			if !ok {
-				b.sendText(u, fmt.Sprintf("unknown command: %s", u.Message.Command()))
+				b.sendText(u, fmt.Sprintf("Unknown command: %s", u.Message.Command()))
 				continue
 			}
 

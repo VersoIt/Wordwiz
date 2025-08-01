@@ -3,10 +3,10 @@
 
 CREATE TABLE users
 (
-    id                    INT PRIMARY KEY,
-    total_requests        bigint,
+    id                    BIGINT PRIMARY KEY,
+    total_requests        BIGINT,
     created_at            TIMESTAMP,
-    generations_per_month bigint
+    generations_per_month BIGINT
 );
 -- +goose StatementEnd
 

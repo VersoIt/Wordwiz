@@ -2,13 +2,13 @@ package music_smart_generator
 
 import (
 	"context"
-	"wordwiz/internal/domain/model"
+	"wordwiz/internal/domain/model/user"
 )
 
 type userRepo interface {
 	LockForUpdate(ctx context.Context, userID int) error
-	GetByID(ctx context.Context, id int) (model.User, error)
-	Update(ctx context.Context, u model.User) error
+	GetByID(ctx context.Context, id int) (user.User, error)
+	Update(ctx context.Context, u user.User) error
 }
 
 type aiClient interface {

@@ -2,12 +2,12 @@ package user_repo
 
 import (
 	"context"
-	"wordwiz/internal/domain/model"
+	"wordwiz/internal/domain/model/user"
 )
 
 func (r *Repository) Create(
 	ctx context.Context,
-	user model.User,
+	user user.User,
 ) error {
 	_, err := r.ctxGetter.DefaultTrOrDB(ctx, r.db).ExecContext(
 		ctx,

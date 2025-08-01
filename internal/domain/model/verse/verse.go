@@ -1,4 +1,4 @@
-package model
+package verse
 
 import "strings"
 
@@ -24,12 +24,20 @@ type RawVerses string
 
 func (v RawVerses) ToVerses() Verses {
 	lines := strings.Split(string(v), "\n")
+
+	filteredLines := make([]string, 0, len(lines))
+	for _, line := range lines {
+		if len(line) != 0 {
+			filteredLines = append(filteredLines, line)
+		}
+	}
+
 	var verses Verses
 
-	for i := 0; i < len(lines); i += 4 {
-		end := min(i+4, len(lines))
+	for i := 0; i < len(filteredLines); i += 4 {
+		end := min(i+4, len(filteredLines))
 
-		verse := lines[i:end]
+		verse := filteredLines[i:end]
 		if len(verse) > 0 {
 			verses = append(verses, verse)
 		}

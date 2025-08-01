@@ -6,4 +6,5 @@ var (
 	ErrAPIFetch                = errors.New("API Error")
 	ErrGenerationsLimitReached = errors.New("generations monthly limit reached")
 	ErrUserNotFound            = errors.New("user not found")
+	ErrEmptyArgs               = errors.New("empty args")
 )

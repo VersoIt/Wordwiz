@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"wordwiz/internal/domain/model"
@@ -30,12 +31,15 @@ func (c *Client) Do(ctx context.Context, request string) (string, error) {
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.cfg.AI.Host, body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %w", model.ErrAPIFetch, err)
 	}
+
+	httpReq.Header.Add("content-type", "application/json")
+	httpReq.Header.Add("X-goog-api-key", c.cfg.AI.APIKey)
 
 	resp, err := c.client.Do(httpReq)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %w", model.ErrAPIFetch, err)
 	}
 
 	defer func() {
@@ -43,7 +47,7 @@ func (c *Client) Do(ctx context.Context, request string) (string, error) {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", model.ErrAPIFetch
+		return "", fmt.Errorf("%w: status code %d is not 200", model.ErrAPIFetch, resp.StatusCode)
 	}
 
 	respBytes, err := io.ReadAll(resp.Body)

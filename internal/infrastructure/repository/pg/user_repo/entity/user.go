@@ -2,7 +2,7 @@ package entity
 
 import (
 	"time"
-	"wordwiz/internal/domain/model"
+	"wordwiz/internal/domain/model/user"
 )
 
 type User struct {
@@ -12,15 +12,15 @@ type User struct {
 	GenerationsPerMonth int64     `db:"generations_per_month"`
 }
 
-func (u *User) FromDomain(user model.User) {
+func (u *User) FromDomain(user user.User) {
 	u.ID = user.ID
 	u.TotalRequests = user.TotalRequests
 	u.CreatedAt = user.CreatedAt
 	u.GenerationsPerMonth = user.GenerationsPerMonth
 }
 
-func (u *User) ToDomain() model.User {
-	return model.User{
+func (u *User) ToDomain() user.User {
+	return user.User{
 		ID:                  u.ID,
 		TotalRequests:       u.TotalRequests,
 		CreatedAt:           u.CreatedAt,

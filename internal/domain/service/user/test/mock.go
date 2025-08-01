@@ -7,7 +7,7 @@ package test
 import (
 	context "context"
 	reflect "reflect"
-	model "wordwiz/internal/domain/model"
+	model "wordwiz/internal/domain/model/user"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -36,17 +36,17 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockRepo) Create(ctx context.Context) error {
+func (m *MockRepo) Create(ctx context.Context, user model.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx)
+	ret := m.ctrl.Call(m, "Create", ctx, user)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockRepoMockRecorder) Create(ctx interface{}) *gomock.Call {
+func (mr *MockRepoMockRecorder) Create(ctx, user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepo)(nil).Create), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepo)(nil).Create), ctx, user)
 }
 
 // GetByID mocks base method.
@@ -59,7 +59,7 @@ func (m *MockRepo) GetByID(ctx context.Context, userID int) (model.User, error) 
 }
 
 // GetByID indicates an expected call of GetByID.
-func (mr *MockRepoMockRecorder) GetByID(ctx, id interface{}) *gomock.Call {
+func (mr *MockRepoMockRecorder) GetByID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepo)(nil).GetByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepo)(nil).GetByID), ctx, userID)
 }

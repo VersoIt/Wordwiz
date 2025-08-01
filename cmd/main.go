@@ -58,13 +58,17 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*cfg.ServerCloseTimeoutMS)
 	defer cancel()
 
-	bot.HandleCommand("help", func(ctx context.Context, update tgbotapi.Update) tgbotapi.MessageConfig {
-		return tgbotapi.NewMessage(update.Message.Chat.ID, "/make - generate song lyrics from given words")
+	bot.HandleCommand("start", func(ctx context.Context, update tgbotapi.Update) tgbotapi.MessageConfig {
+		return tgbotapi.NewMessage(update.Message.Chat.ID, "Hi! Send me some words and I'll generate lyrics for you based on them.\nExample: /gen sun, beach, sea")
 	})
 
-	bot.HandleCommand("make", func(ctx context.Context, update tgbotapi.Update) tgbotapi.MessageConfig {
+	bot.HandleCommand("help", func(ctx context.Context, update tgbotapi.Update) tgbotapi.MessageConfig {
+		return tgbotapi.NewMessage(update.Message.Chat.ID, "/gen - generate song lyrics from given words")
+	})
 
-		verses, err := musicGeneratorUC.Generate(ctx, update.Message.Text, update.Message.From.ID)
+	bot.HandleCommand("gen", func(ctx context.Context, update tgbotapi.Update) tgbotapi.MessageConfig {
+
+		stats, verses, err := musicGeneratorUC.GenerateWithStats(ctx, update.Message.CommandArguments(), update.Message.From.ID)
 		if err != nil {
 			return tgbotapi.NewMessage(
 				update.Message.Chat.ID,
@@ -74,7 +78,15 @@ func main() {
 
 		raw := verses.String()
 
-		return tgbotapi.NewMessage(update.Message.Chat.ID, raw)
+		return tgbotapi.NewMessage(
+			update.Message.Chat.ID,
+			fmt.Sprintf(
+				"%s\n\nRequests per month: %d out of %d",
+				raw,
+				stats.GenerationsPerMonth,
+				cfg.MaxGenerationsPerMonth,
+			),
+		)
 	})
 
 	go func() {
