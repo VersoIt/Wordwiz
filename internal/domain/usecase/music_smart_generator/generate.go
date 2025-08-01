@@ -62,7 +62,7 @@ func (u *UseCase) GenerateWithStats(
 		if err != nil {
 			return err
 		}
-
+		//Key (id)=(5982935138) already exists.
 		return nil
 	})
 	if err != nil {

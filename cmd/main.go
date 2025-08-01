@@ -71,6 +71,8 @@ func main() {
 
 		stats, verses, err := musicGeneratorUC.GenerateWithStats(ctx, update.Message.CommandArguments(), update.Message.From.ID)
 		if err != nil {
+			logrus.Errorf("[%d]: %v", update.Message.From.ID, err)
+
 			return tgbotapi.NewMessage(
 				update.Message.Chat.ID,
 				fmt.Sprintf("Error while generating song lyrics: %v", err),
