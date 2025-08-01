@@ -1,0 +1,1 @@
+UPDATE users SET generations_per_month = 0

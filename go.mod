@@ -14,6 +14,7 @@ require (
 
 require (
 	github.com/mfridman/interpolate v0.0.2 // indirect
+	github.com/robfig/cron/v3 v3.0.0 // indirect
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect

@@ -19,6 +19,7 @@ import (
 	"wordwiz/internal/infrastructure/pg/migrator"
 	userrepo "wordwiz/internal/infrastructure/repository/pg/user_repo"
 	"wordwiz/internal/transport/tgbot"
+	"wordwiz/internal/worker"
 )
 
 func main() {
@@ -91,6 +92,15 @@ func main() {
 
 	go func() {
 		bot.Run(ctx)
+	}()
+
+	cronWorker := worker.New(userRepo)
+
+	go func() {
+		err := cronWorker.Run(ctx)
+		if err != nil {
+			logrus.Panicf("Worker error: %v", err)
+		}
 	}()
 
 	done := make(chan os.Signal, 1)

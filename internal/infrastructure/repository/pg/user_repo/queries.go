@@ -17,4 +17,7 @@ var (
 
 	//go:embed sql/lock_user_for_update.sql
 	queryLockUserForUpdate string
+
+	//go:embed sql/reset_generations_per_month_for_all_users.sql
+	queryResetGenerationsPerMonthForAllUsers string
 )
